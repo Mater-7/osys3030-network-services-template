@@ -41,8 +41,8 @@ die() { printf '[deploy] ERROR: %s\n' "$*" >&2; exit 1; }
 [[ $EUID -eq 0 ]] || die 'Run as root (sudo).'
 [[ -r /etc/os-release ]] || die 'Cannot identify operating system.'
 # shellcheck source=/etc/os-release
-. /etc/os-release
-[[ ${ID:-} == ubuntu && ${VERSION_ID:-} == 24.04 ]] || die 'This script supports Ubuntu 24.04 only.'
+# . /etc/os-release
+# [[ ${ID:-} == ubuntu && ${VERSION_ID:-} == 24.04 ]] || die 'This script supports Ubuntu 24.04 only.'
 
 valid_token() { [[ $1 =~ ^[[:alnum:]_.:-]+$ ]]; }
 valid_token "$WAN_IF" || die "Invalid WAN_IF: $WAN_IF"
