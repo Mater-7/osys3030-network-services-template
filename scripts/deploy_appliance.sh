@@ -160,7 +160,7 @@ chmod 0644 /etc/sysctl.d/99-appliance-forwarding.conf
 
 log 'Validating service configurations before enabling/restarting services.'
 /usr/sbin/sshd -t -f /etc/ssh/sshd_config
-/usr/sbin/named-checkconf -z
+named-checkconf -z
 /usr/sbin/named-checkzone innovate.lab /etc/bind/db.innovate.lab
 kea-dhcp4 -t /etc/kea/kea-dhcp4.conf
 iptables-restore --test < /etc/ufw/before.rules
