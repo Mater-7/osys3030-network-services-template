@@ -34,7 +34,7 @@ The AI insisted on adding os version checking, I manually removed it since it wa
 
 | # | Service / Component | The AI's Hallucination / Error | The Fix Implemented |
 | :--- | :--- | :--- | :--- |
-| **1** | Used paths to execute programs | Instead of using the normal commands it used harded paths like "/usr/bin/echo "test" " it wouldn't run the commands at all.| | I removed the paths to the command and that fixed the problems |
+| **1** | Used paths to execute programs | Instead of using the normal commands it used harded paths like "/usr/bin/echo "test" " it wouldn't run the commands at all.|  I removed the paths to the command and that fixed the problems |
 | **2** | OS version checks |  The deploy script checked what Ubuntu version that we were using, and it was completely unnecessary, and it broke the script | Commented it out, and removed it entirely  |
 | **3** | UFW wasn't getting checked properly | The UFW firewall was setup correctly, but the verification script was not functioning at all | I updated the script using a prompt, and it did fix itself |
 
