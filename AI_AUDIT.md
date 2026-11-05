@@ -193,7 +193,6 @@ Confirm console or out-of-band access before deploying, since this changes netwo
 
 The user included the full contents of the current `scripts/deploy_appliance.sh` inline, with source URL https://github.com/Mater-7/osys3030-network-services-template/blob/main/scripts/deploy_appliance.sh and commit `7f2d3effc42d2d81efe076318583d45d039d12e1`. This version calls `named-checkconf -z` without the `/usr/sbin/` prefix. The user then asked:
 
-Create an entire log of our chat in the root of this project including my full prompts and yours as well
 
 ### 2.1 Deployment Script Prompt
 ```
