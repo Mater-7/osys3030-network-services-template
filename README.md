@@ -30,12 +30,12 @@ A high-level summary of your multi-homed Linux server appliance, its purpose, an
               +---------------------+--------------------------+
                                     |
                                     | (DHCP / Static IP)
-                                 [ens18]
+                                 [ens33]
                        +------------+------------+
                        |   OSYS3030 Linux Server |
                        |                         |
                        +------------+------------+
-                                 [ens19]
+                                 [ens37]
                                     | (10.115.0.250/24)
                                     |
               +---------------------+--------------------+
@@ -53,8 +53,8 @@ A high-level summary of your multi-homed Linux server appliance, its purpose, an
 
 | Interface | Network Zone | IP Address / Subnet | Purpose |
 | :--- | :--- | :--- | :--- |
-| `ens18` | WAN / External | `192.168.81.134` | Upstream internet & SSH management |
-| `ens19` | LAN / Internal | `10.115.0.250/24` | Default gateway & service binding for clients |
+| `ens33` | WAN / External | `192.168.81.134` | Upstream internet & SSH management |
+| `ens37` | LAN / Internal | `10.115.0.250/24` | Default gateway & service binding for clients |
 
 ---
 
