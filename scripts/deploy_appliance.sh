@@ -10,8 +10,8 @@ readonly REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd -P)"
 readonly BACKUP_ROOT="/var/backups/network-appliance"
 readonly NETPLAN_FILE="/etc/netplan/99-network-appliance-lan.yaml"
 
-WAN_IF="${WAN_IF:-ens18}"
-LAN_IF="${LAN_IF:-ens19}"
+WAN_IF="${WAN_IF:-ens33}"
+LAN_IF="${LAN_IF:-ens37}"
 LAN_SUBNET="${LAN_SUBNET:-10.115.0.0/24}"
 LAN_ADDRESS="${LAN_ADDRESS:-10.115.0.250/24}"
 SSH_PORT="${SSH_PORT:-2222}"
@@ -23,7 +23,7 @@ Usage: sudo ./scripts/deploy_appliance.sh [--yes]
 
 Deploys this repository's SSH, BIND9, Kea DHCPv4, and UFW/NAT configuration.
 Review WAN_IF, LAN_IF, LAN_SUBNET, LAN_ADDRESS, and SSH_PORT before running, e.g.:
-  sudo WAN_IF=ens18 LAN_IF=ens19 LAN_SUBNET=10.115.0.0/24 LAN_ADDRESS=10.115.0.250/24 ./scripts/deploy_appliance.sh
+  sudo WAN_IF=ens33 LAN_IF=ens37 LAN_SUBNET=10.115.0.0/24 LAN_ADDRESS=10.115.0.250/24 ./scripts/deploy_appliance.sh
 The script configures the LAN address persistently with Netplan and leaves the
 existing WAN configuration untouched. Use --yes to skip interactive confirmation
 (still requires root).
