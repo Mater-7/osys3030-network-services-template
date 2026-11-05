@@ -3,8 +3,8 @@
 # Defaults match scripts/deploy_appliance.sh; override them via environment as needed.
 set -uo pipefail
 
-WAN_IF="${WAN_IF:-ens18}"
-LAN_IF="${LAN_IF:-ens19}"
+WAN_IF="${WAN_IF:-ens33}"
+LAN_IF="${LAN_IF:-ens37}"
 LAN_SUBNET="${LAN_SUBNET:-10.115.0.0/24}"
 # deploy_appliance.sh configures SSH on 2222 by default; set SSH_PORT=22 if changed.
 SSH_PORT="${SSH_PORT:-2222}"
@@ -50,9 +50,9 @@ listening() {
   local protocol="$1" port="$2"
   command -v ss >/dev/null 2>&1 || return 1
   if [[ $protocol == udp ]]; then
-    ss -H -lun | awk -v p="$port" '$4 ~ (":" p "$") { found=1 } END { exit !found }'
+    ss -H -lun | awk -v p="$port" '$4 ~ (":" p "$\\") { found=1 } END { exit !found }'
   else
-    ss -H -ltn | awk -v p="$port" '$4 ~ (":" p "$") { found=1 } END { exit !found }'
+    ss -H -ltn | awk -v p="$port" '$4 ~ (":" p "$\\") { found=1 } END { exit !found }'
   fi
 }
 
