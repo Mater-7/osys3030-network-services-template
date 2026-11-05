@@ -13,7 +13,7 @@ I honestly did not want to use AI to verify with a script since AI often messes 
 ---
 
 ## 2. Prompt Log
-# Chat Log
+# Chat Log NOTE! I tried to output all of the chat, but it would not output everything
 
 This file records the user and assistant messages from the conversation about deploying and verifying the network appliance. Tool/API activity is not part of the chat transcript. The user supplied full inline file contents multiple times; to avoid duplicating large source files in this log, those payloads are identified by their path and source URL rather than reproduced here. The original source references are included so the exact file contents can be retrieved.
 
