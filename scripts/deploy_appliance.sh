@@ -8,10 +8,12 @@ umask 077
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 readonly REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd -P)"
 readonly BACKUP_ROOT="/var/backups/network-appliance"
+readonly NETPLAN_FILE="/etc/netplan/99-network-appliance-lan.yaml"
 
 WAN_IF="${WAN_IF:-ens18}"
 LAN_IF="${LAN_IF:-ens19}"
 LAN_SUBNET="${LAN_SUBNET:-10.115.0.0/24}"
+LAN_ADDRESS="${LAN_ADDRESS:-10.115.0.250/24}"
 SSH_PORT="${SSH_PORT:-2222}"
 ASSUME_YES=0
 
@@ -20,9 +22,11 @@ usage() {
 Usage: sudo ./scripts/deploy_appliance.sh [--yes]
 
 Deploys this repository's SSH, BIND9, Kea DHCPv4, and UFW/NAT configuration.
-Review WAN_IF, LAN_IF, LAN_SUBNET, and SSH_PORT before running, e.g.:
-  sudo WAN_IF=ens18 LAN_IF=ens19 LAN_SUBNET=10.115.0.0/24 ./scripts/deploy_appliance.sh
-Use --yes to skip the interactive confirmation (still requires root).
+Review WAN_IF, LAN_IF, LAN_SUBNET, LAN_ADDRESS, and SSH_PORT before running, e.g.:
+  sudo WAN_IF=ens18 LAN_IF=ens19 LAN_SUBNET=10.115.0.0/24 LAN_ADDRESS=10.115.0.250/24 ./scripts/deploy_appliance.sh
+The script configures the LAN address persistently with Netplan and leaves the
+existing WAN configuration untouched. Use --yes to skip interactive confirmation
+(still requires root).
 USAGE
 }
 
@@ -49,6 +53,20 @@ valid_token "$WAN_IF" || die "Invalid WAN_IF: $WAN_IF"
 valid_token "$LAN_IF" || die "Invalid LAN_IF: $LAN_IF"
 [[ $WAN_IF != "$LAN_IF" ]] || die 'WAN_IF and LAN_IF must be different.'
 [[ $LAN_SUBNET =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$ ]] || die "Invalid LAN_SUBNET: $LAN_SUBNET"
+[[ $LAN_ADDRESS =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$ ]] || die "Invalid LAN_ADDRESS: $LAN_ADDRESS"
+python3 - "$LAN_ADDRESS" "$LAN_SUBNET" <<'PY' || die 'LAN_ADDRESS must be a usable address inside LAN_SUBNET, with the same prefix length.'
+import ipaddress
+import sys
+try:
+    address = ipaddress.ip_interface(sys.argv[1])
+    subnet = ipaddress.ip_network(sys.argv[2], strict=False)
+    valid = address.version == 4 and subnet.version == 4 and address.network == subnet
+    valid = valid and address.ip != subnet.network_address
+    valid = valid and (subnet.num_addresses <= 2 or address.ip != subnet.broadcast_address)
+except ValueError:
+    valid = False
+sys.exit(0 if valid else 1)
+PY
 [[ $SSH_PORT =~ ^[0-9]+$ ]] && ((SSH_PORT >= 1 && SSH_PORT <= 65535)) || die "Invalid SSH_PORT: $SSH_PORT"
 
 for path in \
@@ -66,6 +84,7 @@ cat <<WARNING
 This will install packages, replace service configuration, restart SSH on port $SSH_PORT,
 and enable UFW. Ensure you have console/out-of-band access. The repository's sample
 Kea and NAT interface/subnet values will be normalized to $LAN_IF, $WAN_IF, and $LAN_SUBNET.
+Netplan will persist $LAN_ADDRESS on $LAN_IF; the existing WAN configuration is not changed.
 WARNING
 if ((ASSUME_YES == 0)); then
   [[ -t 0 ]] || die 'Non-interactive invocation requires --yes.'
@@ -98,7 +117,8 @@ for target in \
   /etc/bind/named.conf.options /etc/bind/named.conf.local /etc/bind/db.innovate.lab \
   /etc/kea/kea-dhcp4.conf \
   /etc/ufw/before.rules /etc/default/ufw \
-  /etc/sysctl.d/99-appliance-forwarding.conf; do
+  /etc/sysctl.d/99-appliance-forwarding.conf \
+  "$NETPLAN_FILE"; do
   backup_file "$target"
 done
 log "Backed up existing files (and recorded absent paths) in $backup_dir"
@@ -107,7 +127,7 @@ log 'Installing required packages.'
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y --no-install-recommends \
-  openssh-server bind9 bind9-utils dnsutils kea-dhcp4-server ufw iptables
+  openssh-server bind9 bind9-utils dnsutils kea-dhcp4-server ufw iptables netplan.io
 
 # Kea's Ubuntu service runs as _kea (or kea on some package builds); grant only
 # its service group read access to the DHCP configuration.
@@ -124,7 +144,7 @@ log 'Deploying configurations with restrictive ownership and modes.'
 install -d -o root -g bind -m 0750 /etc/bind
 install -d -o bind -g bind -m 0750 /etc/bind/zones
 install -d -o root -g "$kea_group" -m 0750 /etc/kea
-install -d -o root -g root -m 0755 /etc/ssh /etc/ufw /etc/sysctl.d
+install -d -o root -g root -m 0755 /etc/ssh /etc/ufw /etc/sysctl.d /etc/netplan
 
 # Stage transformed versions first; repository defaults disagree on the sample
 # interface names and the NAT source uses the host address with a /24 mask.
@@ -144,12 +164,24 @@ install -m 0640 "$REPO_ROOT/fw/before.rules" "$tmpdir/before.rules"
 sed -i -E "s/\"interfaces\"[[:space:]]*:[[:space:]]*\[[^]]*\]/\"interfaces\": [ \"$LAN_IF\" ]/" "$tmpdir/kea-dhcp4.conf"
 sed -i -E "s#-s[[:space:]]+10\.115\.0\.250/24[[:space:]]+-o[[:space:]]+ens33#-s $LAN_SUBNET -o $WAN_IF#" "$tmpdir/before.rules"
 
+# Add only the LAN address in a separate Netplan file; do not redefine the WAN.
+cat > "$tmpdir/99-network-appliance-lan.yaml" <<NETPLAN
+network:
+  version: 2
+  ethernets:
+    "$LAN_IF":
+      dhcp4: false
+      addresses:
+        - $LAN_ADDRESS
+NETPLAN
+
 install -o root -g root -m 0600 "$tmpdir/sshd_config" /etc/ssh/sshd_config
 install -o root -g bind -m 0640 "$tmpdir/named.conf.options" /etc/bind/named.conf.options
 install -o root -g bind -m 0640 "$tmpdir/named.conf.local" /etc/bind/named.conf.local
 install -o bind -g bind -m 0640 "$tmpdir/db.innovate.lab" /etc/bind/db.innovate.lab
 install -o root -g "$kea_group" -m 0640 "$tmpdir/kea-dhcp4.conf" /etc/kea/kea-dhcp4.conf
 install -o root -g root -m 0640 "$tmpdir/before.rules" /etc/ufw/before.rules
+install -o root -g root -m 0600 "$tmpdir/99-network-appliance-lan.yaml" "$NETPLAN_FILE"
 
 # Persist IPv4 forwarding without editing the administrator-managed sysctl.conf.
 cat > /etc/sysctl.d/99-appliance-forwarding.conf <<'SYSCTL'
@@ -158,12 +190,16 @@ SYSCTL
 chown root:root /etc/sysctl.d/99-appliance-forwarding.conf
 chmod 0644 /etc/sysctl.d/99-appliance-forwarding.conf
 
-log 'Validating service configurations before enabling/restarting services.'
+log 'Validating service and Netplan configurations before enabling/restarting services.'
+netplan generate
 /usr/sbin/sshd -t -f /etc/ssh/sshd_config
 named-checkconf -z
 named-checkzone innovate.lab /etc/bind/db.innovate.lab
 kea-dhcp4 -t /etc/kea/kea-dhcp4.conf
 iptables-restore --test < /etc/ufw/before.rules
+
+log "Applying Netplan LAN address $LAN_ADDRESS on $LAN_IF; WAN settings are unchanged."
+netplan apply
 
 log 'Enabling IPv4 forwarding.'
 sysctl --system >/dev/null
@@ -194,6 +230,7 @@ systemctl restart ssh
 ufw --force enable
 
 log 'Deployment complete.'
+log "LAN is configured as $LAN_ADDRESS on $LAN_IF; WAN configuration was left unchanged."
 log "SSH is configured for TCP/$SSH_PORT on $WAN_IF; confirm access from a second session."
 log "Backup: $backup_dir"
 log 'Run scripts/verify_appliance.sh.sample after reviewing its checks and adapting if needed.'
