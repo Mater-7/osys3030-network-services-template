@@ -98,4 +98,4 @@ See [`AI_AUDIT.md`](./AI_AUDIT.md) for documentation on how these scripts were g
 
 * **Audited Classmate:** Eric W 
 * **Classmate Appliance Subnet:** `10.unknown.0.0/24`
-* **Audit Summary:** I already had him added from the last project, and there wasn't any changes to his git repo yet, but I assume he will add his stuff later.
+* **Audit Summary:** I already had him added from the last project, and there wasn't any changes to his git repo yet, but I assume he will add his stuff later, as he is a very studious student!
