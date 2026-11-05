@@ -21,8 +21,9 @@ Act as a Senior Linux DevOps Engineer. Using my attached Markdown guides and con
 
 ```
 ### 2.2 Verification Script Prompt
-write a companion Bash verification script (scripts/verify_appliance.sh) with formatted [ PASS ] / [ FAIL ] indicators that tests every service on the appliance: verifies configuration syntax (named-checkconf, kea-dhcp4 -t), confirms systemd active states, checks listening ports (UDP 53, UDP 67, TCP 22), validates UFW rules and iptables NAT table entries, and tests local DNS resolution via dig
 ```text
+write a companion Bash verification script (scripts/verify_appliance.sh) with formatted [ PASS ] / [ FAIL ] indicators that tests every service on the appliance: verifies configuration syntax (named-checkconf, kea-dhcp4 -t), confirms systemd active states, checks listening ports (UDP 53, UDP 67, TCP 22), validates UFW rules and iptables NAT table entries, and tests local DNS resolution via dig
+
 ```
 
 ---
