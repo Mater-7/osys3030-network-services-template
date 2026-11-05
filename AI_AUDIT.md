@@ -45,7 +45,7 @@ The AI insisted on adding os version checking, I manually removed it since it wa
 * **Date Tested:** [2026-04-11]
 * **Target Environment:** OSYS3030
 * **Verification Script Output:**
----
+```
   ============================================================
   Network Appliance Health & Verification
 ============================================================
@@ -76,7 +76,7 @@ The AI insisted on adding os version checking, I manually removed it since it wa
   IPv4 packet forwarding is enabled                          [ PASS ]
   iptables NAT MASQUERADE for 10.115.0.0/24 via ens33        [ PASS ]
 ============================================================
-'''
+```
 
 ---
 
