@@ -7,13 +7,15 @@
 ---
 
 ## 1. Executive Summary
+'''
 I honestly did not want to use AI to verify with a script since AI often messes up verification/deployment scripts, however I copied the exact prompt in the Notion, and it generated a decent looking script. For safety reasons I created a VM with the same Ubuntu server .iso, and I tested the script on the newly created virtual machine. It seemly worked however I noticed the script did not apply the correct IP address.
-
+'''text
 ---
 
 ## 2. Prompt Log
 
 ### 2.1 Deployment Script Prompt
+'''
 Act as a Senior Linux DevOps Engineer. Using my attached Markdown guides and configuration files for SSH hardening, BIND9, Kea DHCPv4, and UFW with NAT masquerading on Ubuntu 24.04, generate a production-ready Bash script (scripts/deploy_appliance.sh). The script must install all packages, back up existing configs, deploy my custom config files into /etc/, set strict file permissions, and start/enable services in the correct dependency order.
 ```text
 
