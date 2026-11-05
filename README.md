@@ -2,7 +2,7 @@
 
 > **Student Name:** Carter W
 > **Student ID / VMID:** w0521289
-> **Repository:** [[Public GitHub URL]  ](https://github.com/Mater-7/osys3030-network-services-template)
+> **Repository:** [Link](https://github.com/Mater-7/osys3030-network-services-template)
 > **Instructor:** Matt Redmond  
 > **Course:** OSYS3030 - Network Services Using Linux  
 
