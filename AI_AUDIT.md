@@ -15,15 +15,13 @@ I honestly did not want to use AI to verify with a script since AI often messes 
 ## 2. Prompt Log
 
 ### 2.1 Deployment Script Prompt
-'''
-Act as a Senior Linux DevOps Engineer. Using my attached Markdown guides and configuration files for SSH hardening, BIND9, Kea DHCPv4, and UFW with NAT masquerading on Ubuntu 24.04, generate a production-ready Bash script (scripts/deploy_appliance.sh). The script must install all packages, back up existing configs, deploy my custom config files into /etc/, set strict file permissions, and start/enable services in the correct dependency order.
 ```text
+Act as a Senior Linux DevOps Engineer. Using my attached Markdown guides and configuration files for SSH hardening, BIND9, Kea DHCPv4, and UFW with NAT masquerading on Ubuntu 24.04, generate a production-ready Bash script (scripts/deploy_appliance.sh). The script must install all packages, back up existing configs, deploy my custom config files into /etc/, set strict file permissions, and start/enable services in the correct dependency order.
 
 ```
 ### 2.2 Verification Script Prompt
 ```text
 write a companion Bash verification script (scripts/verify_appliance.sh) with formatted [ PASS ] / [ FAIL ] indicators that tests every service on the appliance: verifies configuration syntax (named-checkconf, kea-dhcp4 -t), confirms systemd active states, checks listening ports (UDP 53, UDP 67, TCP 22), validates UFW rules and iptables NAT table entries, and tests local DNS resolution via dig
-
 ```
 
 ---
@@ -37,18 +35,47 @@ The AI insisted on adding os version checking, I manually removed it since it wa
 | # | Service / Component | The AI's Hallucination / Error | The Fix Implemented |
 | :--- | :--- | :--- | :--- |
 | **1** | Used paths to execute programs | Instead of using the normal commands it used harded paths like "/usr/bin/echo "test" " it wouldn't run the commands at all.| | I removed the paths to the command and that fixed the problems |
-| **2** | e.g., BIND9 | Forgot to set `chown -R bind:bind /etc/bind/zones` | Added explicit ownership fix before service start |
-| **3** | e.g., UFW NAT | Added MASQUERADE rule at the bottom of `before.rules` instead of before `*filter` | Positioned the `*nat` table block before the `*filter` block per UFW requirements |
+| **2** | OS version checks |  The deploy script checked what Ubuntu version that we were using, and it was completely unnecessary, and it broke the script | Commented it out, and removed it entirely  |
+| **3** | UFW wasn't getting checked properly | The UFW firewall was setup correctly, but the verification script was not functioning at all | I updated the script using a prompt, and it did fix itself |
 
 ---
 
 ## 4. Testing & Verification Results
 
-* **Date Tested:** [YYYY-MM-DD]
-* **Target Environment:** [e.g., OSYS3030 Baseline Server (VMID 106)]
+* **Date Tested:** [2026-04-11]
+* **Target Environment:** OSYS3030
 * **Verification Script Output:**
   ```text
-  [Paste the terminal output of running sudo ./scripts/verify_appliance.sh showing PASS]
+  ============================================================
+  Network Appliance Health & Verification
+============================================================
+  Verification settings are valid                            [ PASS ]
+  Run as root (required for firewall/NAT checks)             [ PASS ]
+
+--- BIND9 DNS ---
+  BIND9 service is active                                    [ PASS ]
+  BIND configuration syntax and zones (named-checkconf)      [ PASS ]
+  DNS listening on UDP port 53                               [ PASS ]
+  Local DNS resolves ns1.innovate.lab                        [ PASS ]
+
+--- Kea DHCPv4 ---
+  Kea DHCPv4 service is active                               [ PASS ]
+  Kea configuration syntax (kea-dhcp4 -t)                    [ PASS ]
+  DHCP listening on UDP port 67                              [ PASS ]
+
+--- OpenSSH ---
+  OpenSSH service is active                                  [ PASS ]
+  OpenSSH configuration syntax (sshd -t)                     [ PASS ]
+  SSH listening on TCP port 2222                             [ PASS ]
+
+--- Firewall & Routing ---
+  UFW firewall is active                                     [ PASS ]
+  UFW allows SSH TCP/2222 on ens33                           [ PASS ]
+  UFW allows DNS port 53 on ens37                            [ PASS ]
+  UFW allows DHCP UDP/67 on ens37                            [ PASS ]
+  IPv4 packet forwarding is enabled                          [ PASS ]
+  iptables NAT MASQUERADE for 10.115.0.0/24 via ens33        [ PASS ]
+============================================================
   ```
 
 ---
