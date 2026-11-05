@@ -50,9 +50,9 @@ listening() {
   local protocol="$1" port="$2"
   command -v ss >/dev/null 2>&1 || return 1
   if [[ $protocol == udp ]]; then
-    ss -H -lun | awk -v p="$port" '$4 ~ (":" p "$\\") { found=1 } END { exit !found }'
+    ss -H -lun | awk -v p="$port" '{ address=$4; sub(/^.*:/, "", address); if (address == p) found=1 } END { exit !found }'
   else
-    ss -H -ltn | awk -v p="$port" '$4 ~ (":" p "$\\") { found=1 } END { exit !found }'
+    ss -H -ltn | awk -v p="$port" '{ address=$4; sub(/^.*:/, "", address); if (address == p) found=1 } END { exit !found }'
   fi
 }
 
@@ -61,9 +61,20 @@ ufw_active() {
 }
 
 ufw_rule_present() {
-  local port="$1" protocol="$2" iface="$3" status
+  local port="$1" protocol="$2" iface="$3" expected status
+  if [[ -n $protocol ]]; then
+    expected="${port}/${protocol} on ${iface}"
+  else
+    expected="${port} on ${iface}"
+  fi
   status="$(ufw status)" || return 1
-  grep -Eq "^${port}(/${protocol})? on ${iface}[[:space:]]+ALLOW IN([[:space:]]|$)" <<< "$status"
+  awk -v expected="$expected" '
+    index($0, expected) == 1 {
+      remainder = substr($0, length(expected) + 1)
+      if (remainder ~ /^[[:space:]]+ALLOW([[:space:]]|$)/) found = 1
+    }
+    END { exit !found }
+  ' <<< "$status"
 }
 
 nat_masquerade_present() {
