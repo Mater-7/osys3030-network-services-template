@@ -38,7 +38,7 @@ The AI insisted on adding os version checking, I manually removed it since it wa
 | **2** | OS version checks |  The deploy script checked what Ubuntu version that we were using, and it was completely unnecessary, and it broke the script | Commented it out, and removed it entirely  |
 | **3** | UFW wasn't getting checked properly | The UFW firewall was setup correctly, but the verification script was not functioning at all | I updated the script using a prompt, and it did fix itself |
 
----
+'''
 
 ## 4. Testing & Verification Results
 
@@ -76,7 +76,7 @@ The AI insisted on adding os version checking, I manually removed it since it wa
   IPv4 packet forwarding is enabled                          [ PASS ]
   iptables NAT MASQUERADE for 10.115.0.0/24 via ens33        [ PASS ]
 ============================================================
----
+'''
 
 ---
 
